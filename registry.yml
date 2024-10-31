@@ -1,0 +1,116 @@
+version: '3.8'
+
+x-common-deploy: &common-deploy
+  mode: global
+  update_config:
+    delay: 0s
+    order: stop-first
+    failure_action: continue
+  restart_policy:
+    condition: on-failure
+    delay: 5s
+    max_attempts: 5
+    window: 120s
+
+x-deploy: &deploy
+  deploy:
+    <<: *common-deploy
+    placement:
+      constraints:
+        - node.labels.${APP_NAME}==1
+
+x-common: &common
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+
+services:
+  proxy:
+    <<: *deploy
+    <<: *common
+    image: ${DOCKER_REGISTRY}/${DOCKER_REPOSITORY}/${APP_NAME}-proxy:latest
+    hostname: "proxy"
+    networks:
+      - registry
+    ports:
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: ingress
+    configs:
+      - source: registry-proxy-config
+        target: /etc/nginx/nginx.conf
+    secrets:
+      - source: registry-https-crt
+        target: /etc/nginx/certs/crt_.pem
+      - source: registry-https-key
+        target: /etc/nginx/certs/key_.pem
+      - source: registry-auth-htpasswd
+        target: /auth/htpasswd
+
+  registry:
+    <<: *deploy
+    <<: *common
+    image: registry:2
+    init: true
+    hostname: "registry"
+    secrets:
+      - source: registry-https-crt
+        target: /certs/registry.crt
+      - source: registry-https-key
+        target: /certs/registry.key
+      - source: registry-auth-htpasswd
+        target: /auth/htpasswd
+    volumes:
+      - registry-data:/var/lib/registry
+    networks:
+      - registry
+    environment:
+      REGISTRY_LOG_LEVEL: "debug"
+      REGISTRY_HTTP_ADDR: "\"0.0.0.0:5000\""
+      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/registry.crt
+      REGISTRY_HTTP_TLS_KEY: /certs/registry.key
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
+      REGISTRY_HTTP_SECRET: ${REGISTRY_HTTP_SECRET}
+    ports:
+      - target: 6666
+        protocol: tcp
+        mode: ingress
+
+volumes:
+  registry-data:
+    name: registry-data-${APP_NAME}
+    driver: local
+    driver_opts:
+      type: none
+      device: /mnt/data/registry
+      o: bind
+
+networks:
+  registry:
+    driver: overlay
+    attachable: true
+    driver_opts:
+      encrypted: "1"
+      gateway: 10.10.0.1
+    internal: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.10.0.0/28
+
+secrets:
+  registry-https-crt:
+    name: registry-https-crt-${CFG_PREFIX}
+    external: true
+  registry-https-key:
+    name: registry-https-key-${CFG_PREFIX}
+    external: true
+  registry-auth-htpasswd:
+    name: registry-auth-htpasswd-${CFG_PREFIX}
+    external: true
+
+configs:
+  registry-proxy-config:
+    name: registry-proxy-config-${CFG_PREFIX}
+    external: true
