@@ -27,6 +27,11 @@ bash ./build.sh
 ```
 
 Deploy stack:
+# create network for ipv6
+```
+docker network create --ipv6 --subnet fd53:5729:c558:8d8f::/64 ip6net --attachable=true --scope=swarm
+```
+# deploy the stack
 ```
 HTTPS_CRT=~/docker-registry-certs/docker_registry.crt \
 HTTPS_KEY=~/docker-registry-certs/docker_registry.key \

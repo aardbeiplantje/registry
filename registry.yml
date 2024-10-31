@@ -26,16 +26,16 @@ x-common: &common
 services:
   proxy:
     <<: *deploy
-    <<: *common
     image: ${DOCKER_REGISTRY}/${DOCKER_REPOSITORY}/${APP_NAME}-proxy:latest
     hostname: "proxy"
     networks:
+      - ip6net
       - registry
     ports:
       - target: 443
         published: 443
         protocol: tcp
-        mode: ingress
+        mode: host
     configs:
       - source: registry-proxy-config
         target: /etc/nginx/nginx.conf
@@ -87,6 +87,8 @@ volumes:
       o: bind
 
 networks:
+  ip6net:
+    external: true
   registry:
     driver: overlay
     attachable: true
