@@ -21,6 +21,11 @@ Add labels:
 docker node update --label-add docker-registry=1 $HOSTNAME
 ```
 
+Build the nginx image:
+```
+bash ./build.sh
+```
+
 Deploy stack:
 ```
 HTTPS_CRT=~/docker-registry-certs/docker_registry.crt \
