@@ -83,7 +83,7 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /mnt/data/registry
+      device: /mnt/ssd/docker-registry
       o: bind
 
 networks:
