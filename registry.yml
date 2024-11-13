@@ -29,7 +29,7 @@ services:
     image: ${DOCKER_REGISTRY}/${DOCKER_REPOSITORY}/${APP_NAME}-proxy:latest
     hostname: "proxy"
     networks:
-      - ip6net
+      - dmz-ipv6
       - registry
     ports:
       - target: 443
@@ -87,7 +87,7 @@ volumes:
       o: bind
 
 networks:
-  ip6net:
+  dmz-ipv6:
     external: true
   registry:
     driver: overlay
