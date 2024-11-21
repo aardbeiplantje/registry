@@ -1,4 +1,4 @@
-FROM alpine:latest AS proxy
+FROM alpine:latest AS proxy-runtime
 RUN apk add --no-cache nginx nginx-mod-http-auth-jwt nginx-mod-http-headers-more nginx-mod-http-lua
 COPY ./nginx.conf /etc/nginx/nginx.conf
 RUN \
