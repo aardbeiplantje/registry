@@ -25,7 +25,7 @@ else
     do_push="--load"
 fi
 
-DOCKER_PLATFORM=${DOCKER_PLATFORM:-linux/amd64,linux/arm/v6}
+DOCKER_PLATFORM=${DOCKER_PLATFORM:-linux/amd64}
 export BUILDX_CONFIG=${BUILDX_CONFIG:-~/.docker/buildx}
 chksum=$(printenv LOGNAME|openssl sha256 -hex)
 chksum=${chksum:20:8}
