@@ -1,6 +1,6 @@
 #!/bin/bash
 
-myapp="docker-registry"
+myapp="registry"
 APP_NAME=${APP_NAME:-$myapp}
 
 set -eo pipefail
