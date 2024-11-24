@@ -1,6 +1,6 @@
 #!/bin/bash 
 export WORKSPACE=${WORKSPACE:-${BASH_SOURCE%/*}}
-export APP_NAME=${APP_NAME:-docker-registry}
+export APP_NAME=${APP_NAME:-registry}
 export REGISTRY_USER=${REGISTRY_USER?Need REGISTRY_USER}
 export REGISTRY_PASS=${REGISTRY_PASS?Need REGISTRY_PASS}
 export STACK_NAME=${STACK_NAME:-$APP_NAME}
