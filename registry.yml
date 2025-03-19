@@ -48,8 +48,7 @@ services:
         target: /auth/htpasswd
 
   registry:
-    <<: *deploy
-    <<: *common
+    <<: [*deploy, *common]
     image: registry:2
     init: true
     hostname: "registry"
