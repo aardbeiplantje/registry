@@ -50,7 +50,7 @@ target "registry-proxy-development" {
   pull = true
   progress = ["plain", "tty"]
   tags = [
-    "local/${DOCKER_REGISTRY}/registry-proxy:${DOCKER_TAG}",
+    "local/registry/registry-proxy:${DOCKER_TAG}",
   ]
   output = [
     "type=cacheonly",
