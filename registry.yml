@@ -19,9 +19,13 @@ x-deploy: &deploy
       constraints:
         - node.labels.${APP_NAME}==1
 
+x-common: &common
+  sysctls:
+    - net.ipv6.conf.all.disable_ipv6=0
+
 services:
   proxy:
-    <<: *deploy
+    <<: [*deploy, *common]
     image: ${DOCKER_REGISTRY}/${DOCKER_REPOSITORY}/${APP_NAME}-proxy:latest
     hostname: "proxy"
     networks:
@@ -84,17 +88,18 @@ volumes:
 networks:
   dmz-ipv6:
     external: true
+    driver: host
   registry:
     driver: overlay
     attachable: true
     driver_opts:
       encrypted: "1"
-      gateway: 10.10.0.1
+      gateway: 10.20.0.1
     internal: true
     ipam:
       driver: default
       config:
-        - subnet: 10.10.0.0/28
+        - subnet: 10.20.0.0/24
 
 secrets:
   registry-https-crt:
