@@ -19,23 +19,21 @@ x-deploy: &deploy
       constraints:
         - node.labels.${APP_NAME}==1
 
-x-common: &common
-  sysctls:
-    - net.ipv6.conf.all.disable_ipv6=0
-
 services:
   proxy:
-    <<: [*deploy, *common]
+    <<: [*deploy]
     image: ${DOCKER_REGISTRY}/${DOCKER_REPOSITORY}/${APP_NAME}-proxy:latest
     hostname: "proxy"
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+      - net.ipv6.conf.all.forwarding=1
     networks:
       - dmz-ipv6
-      - registry
+      - internal
     ports:
       - target: 443
         published: 443
         protocol: tcp
-        mode: host
     configs:
       - source: registry-proxy-config
         target: /etc/nginx/nginx.conf
@@ -62,7 +60,7 @@ services:
     volumes:
       - registry-data:/var/lib/registry
     networks:
-      - registry
+      - internal
     environment:
       REGISTRY_LOG_LEVEL: "debug"
       REGISTRY_HTTP_ADDR: "\"0.0.0.0:5000\""
@@ -74,7 +72,6 @@ services:
     ports:
       - target: 6666
         protocol: tcp
-        mode: ingress
 
 volumes:
   registry-data:
@@ -85,11 +82,12 @@ volumes:
       device: /mnt/ssd/docker-registry
       o: bind
 
+# see https://github.com/moby/moby/issues/24379
+# see https://serverfault.com/questions/933211/how-to-create-docker-ingress-network-with-ipv6-support
 networks:
   dmz-ipv6:
     external: true
-    driver: host
-  registry:
+  internal:
     driver: overlay
     attachable: true
     driver_opts:
