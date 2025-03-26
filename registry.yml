@@ -84,6 +84,7 @@ volumes:
 
 # see https://github.com/moby/moby/issues/24379
 # see https://serverfault.com/questions/933211/how-to-create-docker-ingress-network-with-ipv6-support
+# see https://labs.ripe.net/author/tugzrida/docker-ipv6-networking-routing-and-ndp-proxying/
 networks:
   dmz-ipv6:
     external: true
@@ -92,12 +93,12 @@ networks:
     attachable: true
     driver_opts:
       encrypted: "1"
-      gateway: 10.20.0.1
+      gateway: 10.10.2.1
     internal: true
     ipam:
       driver: default
       config:
-        - subnet: 10.20.0.0/24
+        - subnet: 10.10.2.0/24
 
 secrets:
   registry-https-crt:
