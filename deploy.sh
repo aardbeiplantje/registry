@@ -36,6 +36,39 @@ else
 fi
 export DOCKER_REPOSITORY=${DOCKER_REPOSITORY:-registry}
 export DOCKER_REGISTRY
+
+echo "clean up $STACK_NAME"
+docker stack rm $STACK_NAME 2>/dev/null
+
+if_name=${BRIDGE_IF_NAME:-dmz-${STACK_NAME}0}
+nw_name=dmz-$STACK_NAME
+ipv6_prefix=${IPV6_PREFIX:-fd53:7cb8:383:eb00:abba::/120}
+echo "network name: $nw_name if_name: $if_name ipv6_prefix: $ipv6_prefix"
+docker network rm $nw_name 2>/dev/null
+docker network ls --filter name=$nw_name -q
+while [ $(docker network ls --filter name=$nw_name -q|wc -l) -gt 0 ]; do
+    sleep 1
+done
+docker network create \
+    $nw_name \
+    --ipv6 \
+    --ipv4 \
+    --attachable \
+    --scope=swarm \
+    --subnet=$ipv6_prefix \
+    --driver=bridge \
+    -o com.docker.network.bridge.name=$if_name \
+    -o com.docker.network.container_iface_prefix=dmz \
+    -o com.docker.network.bridge.gateway_mode_ipv6=routed \
+    -o com.docker.network.bridge.enable_icc=true \
+    -o com.docker.network.bridge.enable_ip_masquerade=false \
+    -o com.docker.network.bridge.enable_ip6_masquerade=false \
+    -o com.docker.network.enable_ipv6=1 \
+    -o com.docker.network.bridge.inhibit_ipv4=true \
+    -o com.docker.network.driver.mtu=1400 \
+    --ipam-driver default
+
+echo "stack deploy $STACK_NAME"
 docker stack deploy \
     -c $WORKSPACE/registry.yml \
     --with-registry-auth \

@@ -28,12 +28,8 @@ services:
       - net.ipv6.conf.all.disable_ipv6=0
       - net.ipv6.conf.all.forwarding=1
     networks:
-      - dmz-ipv6
+      - dmz
       - internal
-    ports:
-      - target: 443
-        published: 443
-        protocol: tcp
     configs:
       - source: registry-proxy-config
         target: /etc/nginx/nginx.conf
@@ -69,9 +65,6 @@ services:
       REGISTRY_STORAGE_DELETE_ENABLED: "true"
       REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
       REGISTRY_HTTP_SECRET: ${REGISTRY_HTTP_SECRET}
-    ports:
-      - target: 6666
-        protocol: tcp
 
 volumes:
   registry-data:
@@ -86,7 +79,8 @@ volumes:
 # see https://serverfault.com/questions/933211/how-to-create-docker-ingress-network-with-ipv6-support
 # see https://labs.ripe.net/author/tugzrida/docker-ipv6-networking-routing-and-ndp-proxying/
 networks:
-  dmz-ipv6:
+  dmz:
+    name: dmz-${APP_NAME}
     external: true
   internal:
     driver: overlay
