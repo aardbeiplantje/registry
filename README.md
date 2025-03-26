@@ -27,9 +27,28 @@ bash ./build.sh
 ```
 
 Deploy stack:
-# create network for ipv6
+# create network for ipv6 (scope=swarm)
 ```
 docker network create --ipv6 --subnet fd53:5729:c558:8d8f::/64 dmz-ipv6 --attachable=true --scope=swarm --driver bridge
+```
+# create network for ipv4 (scope=local)
+```
+docker network create \
+    --ipv6 dmz-ipv6 \
+    --attachable=true \
+    --scope=local \
+    --subnet=fd53:5729:c558:8d8f:a::/120 \
+    --driver=bridge \
+    -o com.docker.network.bridge.name=docker-dmz0 \
+    -o com.docker.network.container_iface_prefix=dmz \
+    -o com.docker.network.bridge.gateway_mode_ipv6=routed \
+    -o com.docker.network.bridge.enable_icc=true \
+    -o com.docker.network.bridge.enable_ip_masquerade=false \
+    -o com.docker.network.bridge.enable_ip6_masquerade=false \
+    -o com.docker.network.enable_ipv6=1 \
+    -o com.docker.network.bridge.inhibit_ipv4=true \
+    -o com.docker.network.driver.mtu=1500 \
+    --ipam-driver default
 ```
 # deploy the stack
 ```
