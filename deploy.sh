@@ -63,7 +63,7 @@ docker network create \
     -o com.docker.network.bridge.enable_icc=true \
     -o com.docker.network.bridge.enable_ip_masquerade=false \
     -o com.docker.network.bridge.enable_ip6_masquerade=false \
-    -o com.docker.network.enable_ipv6=1 \
+    -o com.docker.network.enable_ipv6=true \
     -o com.docker.network.bridge.inhibit_ipv4=true \
     -o com.docker.network.driver.mtu=1500 \
     --ipam-driver default
