@@ -54,6 +54,10 @@ docker network create \
 Also add the ip to the DOCKER ip6tables chain as ACCEPT:
 ```
 ip6tables -I DOCKER -s ::/0 -d fd53:5729:c558:8d8f::/64 -p tcp --dport 443 -j ACCEPT
+
+After finding the IP of the container, add a proxy neighbor:
+```
+ip -6 neigh add proxy fd53:5729:c558:8d8f:a::2 dev eno1
 ```
 
 # deploy the stack
