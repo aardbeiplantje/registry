@@ -50,6 +50,12 @@ docker network create \
     -o com.docker.network.driver.mtu=1500 \
     --ipam-driver default
 ```
+
+Also add the ip to the DOCKER ip6tables chain as ACCEPT:
+```
+ip6tables -I DOCKER -s ::/0 -d fd53:5729:c558:8d8f::/64 -p tcp --dport 443 -j ACCEPT
+```
+
 # deploy the stack
 ```
 HTTPS_CRT=~/docker-registry-certs/docker_registry.crt \
