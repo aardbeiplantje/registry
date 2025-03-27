@@ -65,7 +65,7 @@ docker network create \
     -o com.docker.network.bridge.enable_ip6_masquerade=false \
     -o com.docker.network.enable_ipv6=1 \
     -o com.docker.network.bridge.inhibit_ipv4=true \
-    -o com.docker.network.driver.mtu=1400 \
+    -o com.docker.network.driver.mtu=1500 \
     --ipam-driver default
 
 echo "stack deploy $STACK_NAME"
