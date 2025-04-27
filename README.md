@@ -54,6 +54,12 @@ docker network create \
 Also add the ip to the DOCKER ip6tables chain as ACCEPT:
 ```
 ip6tables -I DOCKER -s ::/0 -d fd53:5729:c558:8d8f::/64 -p tcp --dport 443 -j ACCEPT
+```
+
+Also make sure that proxy ndp is enabled:
+```
+sysctl -w net.ipv6.conf.all.proxy_ndp=1
+```
 
 After finding the IP of the container, add a proxy neighbor:
 ```
