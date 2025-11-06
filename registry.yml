@@ -36,14 +36,15 @@ services:
     # ipv6
     ports:
       - "[::]:1443:443"
+    volumes:
+      - proxy-nginx-logs:/var/log/nginx
+      - proxy-nginx-cache:/var/cache/nginx
+      - proxy-nginx-temp:/var/tmp/nginx
+      - proxy-certs:/certs:ro
     configs:
       - source: registry-proxy-config
         target: /etc/nginx/nginx.conf
     secrets:
-      - source: registry-https-crt
-        target: /etc/nginx/certs/crt_.pem
-      - source: registry-https-key
-        target: /etc/nginx/certs/key_.pem
       - source: registry-auth-htpasswd
         target: /auth/htpasswd
 
@@ -53,10 +54,6 @@ services:
     init: true
     hostname: "registry"
     secrets:
-      - source: registry-https-crt
-        target: /certs/registry.crt
-      - source: registry-https-key
-        target: /certs/registry.key
       - source: registry-auth-htpasswd
         target: /auth/htpasswd
     volumes:
@@ -66,8 +63,6 @@ services:
     environment:
       REGISTRY_LOG_LEVEL: "debug"
       REGISTRY_HTTP_ADDR: "\"0.0.0.0:5000\""
-      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/registry.crt
-      REGISTRY_HTTP_TLS_KEY: /certs/registry.key
       REGISTRY_STORAGE_DELETE_ENABLED: "true"
       REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
       REGISTRY_HTTP_SECRET: ${REGISTRY_HTTP_SECRET}
@@ -80,6 +75,14 @@ volumes:
       type: none
       device: /mnt/ssd/docker-registry
       o: bind
+  proxy-nginx-logs:
+    name: registry-proxy-nginx-logs-${APP_NAME}
+  proxy-nginx-cache:
+    name: registry-proxy-nginx-cache-${APP_NAME}
+  proxy-nginx-temp:
+    name: registry-proxy-nginx-temp-${APP_NAME}
+  proxy-certs:
+    name: registry-proxy-certs-${APP_NAME}
 
 # see https://github.com/moby/moby/issues/24379
 # see https://serverfault.com/questions/933211/how-to-create-docker-ingress-network-with-ipv6-support
@@ -98,7 +101,7 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 10.10.2.0/24
+        - subnet: 10.10.2.0/28
 
 secrets:
   registry-https-crt:
