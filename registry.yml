@@ -88,7 +88,7 @@ networks:
   dmz:
     name: dmz-${APP_NAME}
     external: true
-  internal:
+  registryipv4:
     driver: overlay
     attachable: true
     driver_opts:
