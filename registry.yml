@@ -30,10 +30,6 @@ services:
     networks:
       - dmz
       - registryipv4
-    # not used, while "dmz" is an external bridge network scope=swarm, these
-    # ports are made on the swarm's ingress network, which is currently ipv4
-    # only, hence the DOCKER-INGRESS in iptables ipv4 is the only change, not
-    # ipv6
     ports:
       - "[::]:443:443"
     volumes:
