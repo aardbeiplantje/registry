@@ -9,6 +9,17 @@ export CFG_PREFIX=$STACK_NAME-$now
 export STACK_CONFIG=${STACK_CONFIG:-$WORKSPACE}
 ipv6_prefix=${APP_IPV6_PREFIX?Need APP_IPV6_PREFIX}
 
+echo "building multiarch images with buildx"
+docker buildx use registry || \
+docker buildx create \
+    --use \
+    --name registry \
+    --platform linux/amd64,linux/arm64,linux/aarch64 \
+    --driver docker-container \
+    --driver-opt image=moby/buildkit:master \
+    --driver-opt network=host
+docker buildx bake || exit $?
+
 echo "creating configs and secrets with prefix $CFG_PREFIX"
 docker config create \
     --template-driver golang \
