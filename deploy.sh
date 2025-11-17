@@ -41,7 +41,7 @@ fi
 echo "removing old stack, as we need to recreate the network with same IPv6"
 docker stack rm $STACK_NAME 2>/dev/null
 
-nw_name=dmz-ipv6-$STACK_NAME
+nw_name=dmz-$STACK_NAME
 if_name=${BRIDGE_IF_NAME:-dmz-${STACK_NAME}0}
 echo "removing network name: $nw_name if_name: $if_name ipv6_prefix: $ipv6_prefix"
 docker network rm $nw_name 2>/dev/null
