@@ -51,18 +51,22 @@ while [ $(docker network ls --filter name=$nw_name -q|wc -l) -gt 0 ]; do
 done
 echo "removed network $nw_name"
 
+DOMAIN=${APP_DOMAIN?Need APP_DOMAIN}
+IPV6=$(dig -6 $DOMAIN -t AAAA +short +retry=0 +tries=1)
+if [ $? != 0 -o -z "$IPV6" ]; then
+    echo -ne "problem looking up $DOMAIN:\n$IPV6\n"
+    exit 1
+fi
+APP_IF_NAME=${APP_IF_NAME:-eno1}
+echo "checking for network, using $APP_IF_NAME"
+echo "running sysctl for proxy_ndp and add $IPV6 as neighbour"
+sudo sh -x -c "ip -6 neigh add proxy $IPV6 dev $APP_IF_NAME; \
+    sysctl net.ipv6.conf.default.proxy_ndp=1; \
+    sysctl net.ipv6.conf.all.proxy_ndp=1; \
+    ip6tables -I DOCKER -s ::/0 -d $IPV6 -p tcp --dport 443 -j ACCEPT"
+
 if [ "${APP_DO_CERTBOT:-0}" -eq 1 ]; then
     APP_CERTBOT_MAIL=${APP_CERTBOT_MAIL?Need APP_CERTBOT_MAIL}
-    DOMAIN=${APP_DOMAIN?Need APP_DOMAIN}
-    IPV6=$(dig -6 $DOMAIN -t AAAA +short +retry=0 +tries=1)
-    if [ $? != 0 -o -z "$IPV6" ]; then
-        echo -ne "problem looking up $DOMAIN:\n$IPV6\n"
-        exit 1
-    fi
-    APP_IF_NAME=${APP_IF_NAME:-eno1}
-    echo "checking for network, using $APP_IF_NAME"
-    echo "running sysctl for proxy_ndp and add $IPV6 as neighbour"
-    sudo sh -x -c "ip -6 neigh add proxy $IPV6 dev $APP_IF_NAME; sysctl net.ipv6.conf.default.proxy_ndp=1; sysctl net.ipv6.conf.all.proxy_ndp=1;"
     # work via export ENV, as this is a possible secret, and we dont want to
     # show this in a ps or log
     echo "removing network $nw_name"
