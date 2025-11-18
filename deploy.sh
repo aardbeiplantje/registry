@@ -74,6 +74,7 @@ echo "running sysctl for proxy_ndp and add $IPV6 as neighbour"
 sudo sh -x -c "ip -6 neigh add proxy $IPV6 dev $APP_IF_NAME; \
     sysctl net.ipv6.conf.default.proxy_ndp=1; \
     sysctl net.ipv6.conf.all.proxy_ndp=1; \
+    ip6tables -D DOCKER -s ::/0 -d $IPV6 -p tcp --dport 443 -j ACCEPT; \
     ip6tables -I DOCKER -s ::/0 -d $IPV6 -p tcp --dport 443 -j ACCEPT"
 
 if [ "${APP_DO_CERTBOT:-0}" -eq 1 ]; then
