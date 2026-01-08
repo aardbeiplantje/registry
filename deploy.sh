@@ -123,6 +123,7 @@ else
 fi
 
 echo "creating network $nw_name with prefix $ipv6_prefix"
+set -x
 docker network create \
     $nw_name \
     --ipv6 \
@@ -140,7 +141,9 @@ docker network create \
     -o com.docker.network.enable_ipv6=true \
     -o com.docker.network.bridge.inhibit_ipv4=false \
     -o com.docker.network.driver.mtu=1500 \
-    --ipam-driver default
+    --ipam-driver default \
+    || exit $?
+set +x
 
 echo "make sure the container image comes from local"
 export DOCKER_REGISTRY=local
