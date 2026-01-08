@@ -83,7 +83,7 @@ volumes:
 # see https://labs.ripe.net/author/tugzrida/docker-ipv6-networking-routing-and-ndp-proxying/
 networks:
   dmz:
-    name: dmz-docker-swarm-ipv6
+    name: dmz-${APP_NAME}
     external: true
   default:
     driver: overlay
