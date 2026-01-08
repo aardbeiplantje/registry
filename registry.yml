@@ -29,9 +29,7 @@ services:
       - net.ipv6.conf.all.forwarding=1
     networks:
       - dmz
-      - registryipv4
-    ports:
-      - "[::]:443:443"
+      - default
     volumes:
       - proxy-nginx-logs:/var/log/nginx
       - proxy-nginx-cache:/var/cache/nginx
@@ -55,7 +53,7 @@ services:
     volumes:
       - registry-data:/var/lib/registry
     networks:
-      - registryipv4
+      - default
     environment:
       REGISTRY_LOG_LEVEL: "debug"
       REGISTRY_HTTP_ADDR: "\"0.0.0.0:5000\""
@@ -87,7 +85,7 @@ networks:
   dmz:
     name: dmz-docker-swarm-ipv6
     external: true
-  registryipv4:
+  default:
     driver: overlay
     attachable: true
     driver_opts:
