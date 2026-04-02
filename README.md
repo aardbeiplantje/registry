@@ -1,75 +1,52 @@
-Setup docker swarm:
+Prerequisites
+1. Docker Engine with Swarm mode enabled.
+2. IPv6 enabled in Docker daemon config (for example in /etc/docker/daemon.json).
+3. DNS AAAA record for your registry host (APP_DOMAIN) pointing to the host IPv6 address.
+4. Sudo privileges on the host running deploy.sh (the script updates NDP/sysctl/ip6tables).
+5. Swarm node label registry=1 on nodes that should run the services.
+
+Initialize swarm (single-node example)
 ```
-docker swarm init --default-addr-pool 10.0.0.0/8 --default-addr-pool-mask-length 24 --advertise-addr $IP
-```
-Add a node, on the manager:
-```
-docker swarm join-token worker
-```
-On the node, see https://docs.docker.com/network/overlay/ for ports:
-```
-firewall-cmd --add-port=2377/tcp
-firewall-cmd --add-port=7946/tcp
-firewall-cmd --add-port=7946/udp
-firewall-cmd --add-port=4789/udp
-firewall-cmd --add-rich-rule="rule protocol value=esp accept"
-firewall-cmd --runtime-to-permanent
-docker swarm join --token $TKN_HERE
-```
-Add labels:
-```
-docker node update --label-add docker-registry=1 $HOSTNAME
+docker swarm init --default-addr-pool 10.0.0.0/8 --default-addr-pool-mask-length 24 --advertise-addr 127.0.0.1
 ```
 
-Build the nginx image:
+Set required node label
 ```
-bash ./build.sh
-```
-
-Deploy stack:
-# create network for ipv6 (scope=swarm)
-```
-docker network create --ipv6 --subnet fd53:5729:c558:8d8f::/64 dmz-ipv6 --attachable=true --scope=swarm --driver bridge
-```
-# create network for ipv4 (scope=local)
-```
-docker network create \
-    --ipv6 dmz-ipv6 \
-    --attachable=true \
-    --scope=local \
-    --subnet=fd53:5729:c558:8d8f:a::/120 \
-    --driver=bridge \
-    -o com.docker.network.bridge.name=docker-dmz0 \
-    -o com.docker.network.container_iface_prefix=dmz \
-    -o com.docker.network.bridge.gateway_mode_ipv6=routed \
-    -o com.docker.network.bridge.enable_icc=true \
-    -o com.docker.network.bridge.enable_ip_masquerade=false \
-    -o com.docker.network.bridge.enable_ip6_masquerade=false \
-    -o com.docker.network.enable_ipv6=1 \
-    -o com.docker.network.bridge.inhibit_ipv4=true \
-    -o com.docker.network.driver.mtu=1500 \
-    --ipam-driver default
+docker node update --label-add registry=1 <node-hostname>
 ```
 
-Also add the ip to the DOCKER ip6tables chain as ACCEPT:
+Important
+- Do not use node.labels.registry as the label key.
+- Use registry=1 because placement constraints are node.labels.registry==1.
+
+What deploy.sh automates
+- Buildx builder selection/creation and image build.
+- Docker config + secret creation for nginx and htpasswd.
+- Optional docker login when DOCKER_REGISTRY_* env vars are provided.
+- Stack removal/redeploy.
+- dmz network recreation.
+- IPv6 neighbor, proxy_ndp sysctl, and ip6tables ACCEPT rule for 443.
+- Optional certbot flow when APP_DO_CERTBOT=1.
+
+Deploy
 ```
-ip6tables -I DOCKER -s ::/0 -d fd53:5729:c558:8d8f::/64 -p tcp --dport 443 -j ACCEPT
+APP_NAME=registry \
+APP_DOMAIN=registry.aardbeiplantje.link \
+APP_IPV6_PREFIX=2a02:a03f:878c:eb00:f::/120 \
+REGISTRY_USER=<user> \
+REGISTRY_PASS=<pass> \
+bash ./deploy.sh
 ```
 
-Also make sure that proxy ndp is enabled:
+Optional: issue/refresh certificate during deploy
 ```
-sysctl -w net.ipv6.conf.all.proxy_ndp=1
-```
-
-After finding the IP of the container, add a proxy neighbor:
-```
-ip -6 neigh add proxy fd53:5729:c558:8d8f:a::2 dev eno1
-```
-
-# deploy the stack
-```
-HTTPS_CRT=~/docker-registry-certs/docker_registry.crt \
-HTTPS_KEY=~/docker-registry-certs/docker_registry.key \
-APP_NAME=docker-registry \
+APP_DO_CERTBOT=1 \
+APP_CERTBOT_MAIL=<email> \
+APP_CERT_VOLUME=registry-proxy-certs-registry \
+APP_NAME=registry \
+APP_DOMAIN=registry.aardbeiplantje.link \
+APP_IPV6_PREFIX=2a02:a03f:878c:eb00:f::/120 \
+REGISTRY_USER=<user> \
+REGISTRY_PASS=<pass> \
 bash ./deploy.sh
 ```

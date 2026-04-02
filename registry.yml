@@ -29,7 +29,7 @@ services:
       - net.ipv6.conf.all.forwarding=1
     networks:
       - dmz
-      - default
+      - internal
     volumes:
       - proxy-nginx-logs:/var/log/nginx
       - proxy-nginx-cache:/var/cache/nginx
@@ -53,7 +53,7 @@ services:
     volumes:
       - registry-data:/var/lib/registry
     networks:
-      - default
+      - internal
     environment:
       REGISTRY_LOG_LEVEL: "debug"
       REGISTRY_HTTP_ADDR: "\"0.0.0.0:5000\""
@@ -85,17 +85,17 @@ networks:
   dmz:
     name: dmz-${APP_NAME}
     external: true
-  default:
+  internal:
     driver: overlay
     attachable: true
     driver_opts:
       encrypted: "1"
-      gateway: 10.10.2.1
+      gateway: 10.100.2.1
     internal: true
     ipam:
       driver: default
       config:
-        - subnet: 10.10.2.0/28
+        - subnet: 10.100.2.0/28
 
 secrets:
   registry-https-crt:
