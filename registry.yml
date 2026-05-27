@@ -90,12 +90,12 @@ networks:
     attachable: true
     driver_opts:
       encrypted: "1"
-      gateway: 10.100.2.1
+      gateway: 10.99.2.1
     internal: true
     ipam:
       driver: default
       config:
-        - subnet: 10.100.2.0/28
+        - subnet: 10.99.2.0/24
 
 secrets:
   registry-https-crt:
