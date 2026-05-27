@@ -8,6 +8,7 @@ printf -v now "%(%s)T" -1
 export CFG_PREFIX=$STACK_NAME-$now
 export STACK_CONFIG=${STACK_CONFIG:-$WORKSPACE}
 ipv6_prefix=${APP_IPV6_PREFIX?Need APP_IPV6_PREFIX}
+export APP_CERT_VOLUME=${APP_CERT_VOLUME?Need APP_CERT_VOLUME}
 
 echo "building multiarch images with buildx"
 docker buildx use registry || \

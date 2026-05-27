@@ -76,7 +76,7 @@ volumes:
   proxy-nginx-temp:
     name: registry-proxy-nginx-temp-${APP_NAME}
   proxy-certs:
-    name: registry-proxy-certs-${APP_NAME}
+    name: ${APP_CERT_VOLUME}
 
 # see https://github.com/moby/moby/issues/24379
 # see https://serverfault.com/questions/933211/how-to-create-docker-ingress-network-with-ipv6-support
