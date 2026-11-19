@@ -5,7 +5,7 @@ group "release" {
   targets = ["registry-proxy"]
 }
 variable "DOCKER_REGISTRY" {
-  default = "ghcr.io"
+  default = "local"
 }
 variable "DOCKER_REPOSITORY" {
   default = "registry"

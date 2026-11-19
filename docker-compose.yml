@@ -1,0 +1,91 @@
+# Docker Compose equivalent of registry.yml (Swarm stack).
+# Swarm-only settings were translated as follows:
+#   - deploy.mode=global / placement constraints -> one container per service
+#   - deploy.update_config                        -> dropped (no rolling update in Compose)
+#   - deploy.restart_policy                       -> restart: on-failure:5
+#   - overlay network                             -> bridge networks
+#   - external secrets/configs                    -> file-based secrets/configs
+#   - dmz (ipv6 only, routed)                     -> created by compose, static proxy IPv6
+
+services:
+  proxy:
+    image: ${DOCKER_REGISTRY:-local}/${DOCKER_REPOSITORY:-registry}/${APP_NAME:-registry}-proxy:latest
+    hostname: "proxy"
+    restart: on-failure:5
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+      - net.ipv6.conf.all.forwarding=1
+    networks:
+      dmz:
+        ipv6_address: "${IPV6_ADDRESS}"
+      internal:
+    volumes:
+      - proxy-nginx-logs:/var/log/nginx
+      - proxy-nginx-cache:/var/cache/nginx
+      - proxy-nginx-temp:/var/tmp/nginx
+      - proxy-certs:/certs:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${HTPASSWD_FILE:-./htpasswd}:/auth/htpasswd:ro
+
+  registry:
+    image: registry:2
+    init: true
+    hostname: "registry"
+    restart: on-failure:5
+    volumes:
+      - registry-data:/var/lib/registry
+      - ${HTPASSWD_FILE:-./htpasswd}:/auth/htpasswd:ro
+    networks:
+      - internal
+    environment:
+      REGISTRY_LOG_LEVEL: "debug"
+      REGISTRY_HTTP_ADDR: "\"0.0.0.0:5000\""
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
+      REGISTRY_HTTP_SECRET: ${REGISTRY_HTTP_SECRET}
+
+volumes:
+  registry-data:
+    name: registry-data-${APP_NAME}
+    driver: local
+    driver_opts:
+      type: none
+      device: /mnt/ssd/docker-registry
+      o: bind
+  proxy-nginx-logs:
+    name: registry-proxy-nginx-logs-${APP_NAME}
+  proxy-nginx-cache:
+    name: registry-proxy-nginx-cache-${APP_NAME}
+  proxy-nginx-temp:
+    name: registry-proxy-nginx-temp-${APP_NAME}
+  proxy-certs:
+    name: ${APP_CERT_VOLUME}
+
+networks:
+  dmz:
+    name: dmz-${APP_NAME}-ipv6
+    driver: bridge
+    enable_ipv6: true
+    enable_ipv4: false
+    driver_opts:
+      com.docker.network.bridge.gateway_mode_ipv6: "routed"
+      com.docker.network.bridge.name: "${APP_NAME}-dmz0"
+      com.docker.network.container_iface_prefix: "dmz"
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "false"
+      com.docker.network.bridge.enable_ip6_masquerade: "false"
+      com.docker.network.bridge.inhibit_ipv4: "true"
+      com.docker.network.driver.mtu: "1500"
+    ipam:
+      driver: default
+      config:
+        - subnet: "${IPV6_SUBNET}"
+          gateway: "${IPV6_GATEWAY}"
+  internal:
+    driver: bridge
+    internal: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.99.2.0/24
+          gateway: 10.99.2.1
