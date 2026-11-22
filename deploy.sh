@@ -16,7 +16,7 @@ export IPV6_GATEWAY=${IPV6_GATEWAY?Need IPV6_GATEWAY (e.g. 2001:db8:c::1:1)}
 nw_name=dmz-${APP_NAME}-ipv6
 
 echo "building multiarch images with buildx"
-docker buildx bake -f docker-bake.hcl || exit $?
+docker buildx bake --pull -f docker-bake.hcl || exit $?
 
 echo "writing htpasswd file"
 export HTPASSWD_FILE=${HTPASSWD_FILE:-$WORKSPACE/htpasswd}
