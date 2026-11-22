@@ -16,14 +16,6 @@ export IPV6_GATEWAY=${IPV6_GATEWAY?Need IPV6_GATEWAY (e.g. 2001:db8:c::1:1)}
 nw_name=dmz-${APP_NAME}-ipv6
 
 echo "building multiarch images with buildx"
-docker buildx use registry || \
-docker buildx create \
-    --use \
-    --name registry \
-    --platform linux/amd64,linux/arm64,linux/aarch64 \
-    --driver docker-container \
-    --driver-opt image=moby/buildkit:master \
-    --driver-opt network=host
 docker buildx bake -f docker-bake.hcl || exit $?
 
 echo "writing htpasswd file"
